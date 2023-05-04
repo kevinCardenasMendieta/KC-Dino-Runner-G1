@@ -1,5 +1,7 @@
 import pygame
 
+from dino_runner.utils.text import  draw_message
+
 class Score:
     def __init__(self):
         self.score = 0
@@ -10,8 +12,12 @@ class Score:
             game.game_speed +=2
 
     def draw(self, screen):
-        font = pygame.font.Font('freesansbold.ttf', 22)
-        tex = font.render(f"Score: {self.score}", True, (0, 0, 0))
-        tex_rect = tex.get_rect()
-        tex_rect.center = (1000, 50)
-        screen.blit(tex, tex_rect)
+        draw_message(
+            f"Score: {self.score}",
+            screen,
+            font_size=22,
+            pos_x_center=1000,
+            pos_y_center=50
+        )
+    def reset(self):
+        self.score = 0

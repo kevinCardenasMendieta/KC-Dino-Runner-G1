@@ -1,9 +1,11 @@
 import pygame
 from dino_runner.components.dinosaurio import Dinosaur
 from dino_runner.components.obstacles.obstacleManager import ObstacleManager
+from dino_runner.components.power_ups.power_up_manager import PowerUpManager
 from dino_runner.components.score import Score
+from dino_runner.utils.text import draw_message
 
-from dino_runner.utils.constants import BG, ICON, DINO_START,SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS
+from dino_runner.utils.constants import BG, ICON, DINO_START,SCREEN_HEIGHT, SCREEN_WIDTH, SHIELD_TYPE, TITLE, FPS , RESET
 
 
 class Game:
@@ -23,6 +25,7 @@ class Game:
         self.obstacle_manager = ObstacleManager()
         self.score = Score()
         self.death_count = 0
+        self.power_up_manager = PowerUpManager()
 
     def run(self):
         self.running = True
@@ -33,14 +36,19 @@ class Game:
         pygame.quit()
 
     def play(self):
-         self.playing = True
-         self.obstacle_manager.reset()
+         self.reset_game()
          while self.playing:
             self.events()
             self.update()
             self.draw()
-         pygame.quit()
 
+    def reset_game(self):
+        self.playing = True
+        self.game_speed = 20
+        self.obstacle_manager.reset()
+        self.score.reset()
+        self.power_up_manager.reset()
+    
     def events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -50,8 +58,10 @@ class Game:
     def update(self):
         user_input = pygame.key.get_pressed()
         self.player.update(user_input)
-        self.obstacle_manager.update(self.game_speed, self.player, self.on_death)
+        self.obstacle_manager.update(
+            self.game_speed, self.player, self.on_death)
         self.score.update(self)
+        self.power_up_manager.update(self.game_speed, self.score.score, self.player)
 
     def draw(self):
         self.clock.tick(FPS)
@@ -60,6 +70,8 @@ class Game:
         self.player.draw(self.screen)
         self.obstacle_manager.draw(self.screen)
         self.score.draw(self.screen)
+        self.power_up_manager.draw(self.screen)
+        self.player.draw_power_up(self.screen)
         pygame.display.update()
         pygame.display.flip()
 
@@ -71,25 +83,37 @@ class Game:
             self.screen.blit(BG, (image_width + self.x_pos_bg, self.y_pos_bg))
             self.x_pos_bg = 0
         self.x_pos_bg -= self.game_speed
-
+ 
     def on_death(self):
-        pygame.time.delay(500)
-        self.playing = False
-        self.death_count += 1
+        is_invincible = self.player.type == SHIELD_TYPE
+        if not is_invincible:
+            pygame.time.delay(500)
+            self.playing = False
+            self.death_count += 1
 
     def show_menu(self):
         center_x = SCREEN_WIDTH // 2
         center_y = SCREEN_HEIGHT // 2
         self.screen.fill((255, 255, 255))
         if self.death_count == 0:
-           font = pygame.font.Font('freesansbold.ttf', 30)
-           tex = font.render("press any key to start.", True, (0, 0, 0))
-           tex_rect = tex.get_rect()
-           tex_rect.center = (center_x, center_y)
-           self.screen.blit(tex, tex_rect)
-           self.screen.blit(DINO_START, (center_x -49, center_y -121))
-           pygame.display.update()
-           self.handle_menu_events()
+          draw_message("press any key to start", self.screen)
+          self.screen.blit(DINO_START, (center_x - 49, center_y - 121))
+        else:
+            draw_message("press any key to start", self.screen)
+            draw_message(
+                f"Your Score: {self.score.score}",
+                self.screen,
+                pos_y_center=center_y + 50
+            )
+            draw_message(
+                f"Death count: {self.death_count}",
+                self.screen,
+                pos_y_center=center_y + 100
+            )
+            self.screen.blit(RESET, (center_x - 38, center_y - 121))
+
+        pygame.display.update()
+        self.handle_menu_events()
 
     def handle_menu_events(self):
         for event in pygame.event.get():
