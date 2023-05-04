@@ -5,7 +5,7 @@ from dino_runner.components.power_ups.power_up_manager import PowerUpManager
 from dino_runner.components.score import Score
 from dino_runner.utils.text import draw_message
 
-from dino_runner.utils.constants import BG, ICON, DINO_START,SCREEN_HEIGHT, SCREEN_WIDTH, SHIELD_TYPE, TITLE, FPS , RESET, POPE
+from dino_runner.utils.constants import BG, ICON, DINO_START,SCREEN_HEIGHT, SCREEN_WIDTH, SHIELD_TYPE, TITLE, FPS , RESET, POPE, HAMMER_TYPE
 
 
 class Game:
@@ -64,7 +64,7 @@ class Game:
         self.obstacle_manager.update(
             self.game_speed, self.player, self.on_death)
         self.score.update(self)
-        self.power_up_manager.update(self.game_speed, self.score.score, self.player)
+        self.power_up_manager.update(self.game_speed, self.score.score, self.player, self)
 
     def draw(self):
         self.clock.tick(FPS)
@@ -74,7 +74,7 @@ class Game:
         self.obstacle_manager.draw(self.screen)
         self.score.draw(self.screen)
         self.power_up_manager.draw(self.screen)
-        self.player.draw_power_up(self.screen)
+        self.player.draw_power_up(self.screen, self)
         pygame.display.update()
         pygame.display.flip()
 
@@ -88,11 +88,15 @@ class Game:
         self.x_pos_bg -= self.game_speed
  
     def on_death(self):
-        is_invincible = self.player.type == SHIELD_TYPE
+        is_invincible = self.player.type == SHIELD_TYPE or self.player.type == HAMMER_TYPE
+        if self.player.type == HAMMER_TYPE:
+            for obstacle in self.obstacle_manager.obstacles:
+                if obstacle.rect.colliderect(self.player.rect):
+                    self.obstacle_manager.obstacles.remove(obstacle)
         if not is_invincible:
-            pygame.time.delay(500)
-            self.playing = False
-            self.death_count += 1
+           pygame.time.delay(500)
+           self.playing = False
+           self.death_count += 1
 
     def show_menu(self):
         center_x = SCREEN_WIDTH // 2

@@ -80,7 +80,7 @@ class Dinosaur(Sprite):
         self.power_up_time_up = power_up.start_time + \
             (power_up.duratino * 1000)
         
-    def draw_power_up(self, screen):
+    def draw_power_up(self, screen, game):
         if self.type != DEFAULT_TYPE:
             time_to_show = round(
                 (self.power_up_time_up - pygame.time.get_ticks()) / 1000, 2)
@@ -91,5 +91,7 @@ class Dinosaur(Sprite):
                                 pos_y_center=50
                   )
             else:
+                  if self.type == HAMMER_TYPE:
+                       game.game_speed = 20
                   self.type = DEFAULT_TYPE
                   self.power_up_time_up = 0 
