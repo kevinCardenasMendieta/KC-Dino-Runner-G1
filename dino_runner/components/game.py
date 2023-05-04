@@ -5,7 +5,7 @@ from dino_runner.components.power_ups.power_up_manager import PowerUpManager
 from dino_runner.components.score import Score
 from dino_runner.utils.text import draw_message
 
-from dino_runner.utils.constants import BG, ICON, DINO_START,SCREEN_HEIGHT, SCREEN_WIDTH, SHIELD_TYPE, TITLE, FPS , RESET
+from dino_runner.utils.constants import BG, ICON, DINO_START,SCREEN_HEIGHT, SCREEN_WIDTH, SHIELD_TYPE, TITLE, FPS , RESET, POPE
 
 
 class Game:
@@ -26,6 +26,7 @@ class Game:
         self.score = Score()
         self.death_count = 0
         self.power_up_manager = PowerUpManager()
+        self.music = POPE
 
     def run(self):
         self.running = True
@@ -36,14 +37,16 @@ class Game:
         pygame.quit()
 
     def play(self):
-         self.reset_game()
-         while self.playing:
+        self.reset_game()
+        while self.playing:
             self.events()
             self.update()
             self.draw()
+        self.music.stop()
 
     def reset_game(self):
         self.playing = True
+        self.music.play()
         self.game_speed = 20
         self.obstacle_manager.reset()
         self.score.reset()
